@@ -1,0 +1,11 @@
+=== SYMBOL TABLE ===
+Symbol: AD5        Address: 0
+
+=== FORWARD REFERENCE TABLE ===
+=== DIRECT ADDRESS TABLE (DAT) ===
+
+=== HDRM TABLE ===
+H SBR1 0
+D AD5 0
+R YY 0
+M YY 3

@@ -1,9 +1,0 @@
-=== DIRECT ADDRESS TABLE (DAT) ===
-1
-4
-7
-10
-16
-21
-24
-30

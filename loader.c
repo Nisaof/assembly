@@ -87,7 +87,7 @@ static void loadExeFile(const char *exe_file, int loadpoint) {
         
         int mem_addr = loadpoint + lc;
         
-        int first_val = 0;
+        unsigned int first_val = 0;
         sscanf(tok1, "%x", &first_val);
         char first_str[4];
         snprintf(first_str, sizeof(first_str), "%02X", first_val & 0xFF);
@@ -98,14 +98,14 @@ static void loadExeFile(const char *exe_file, int loadpoint) {
             int inst_size = getInstructionSizeFromOpcode(first_str);
             
             if (inst_size == 2 && n >= 3) {
-                int val = 0;
+                unsigned int val = 0;
                 sscanf(tok2, "%x", &val);
                 char str[4];
                 snprintf(str, sizeof(str), "%02d", val & 0xFF);
                 addToMemory(mem_addr + 1, str);
             }
             else if (inst_size == 3 && n >= 4) {
-                int val1 = 0, val2 = 0;
+                unsigned int val1 = 0, val2 = 0;
                 sscanf(tok2, "%x", &val1);
                 sscanf(tok3, "%x", &val2);
                 
@@ -213,7 +213,7 @@ void runLoader(const char *exe_file, const char *t_file) {
     memory_count = 0;
     memset(M, 0, sizeof(M));
     
-    int loadpoint;
+    unsigned int loadpoint;
     printf("Loadpoint giriniz (decimal veya hex): ");
     
     char input[20];

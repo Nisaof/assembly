@@ -2,12 +2,12 @@
 #include <string.h>
 #include "tables.h"
 
-// Global tablolar
+//Global tablolar
 struct SymbolTable ST[MAX_ST];
 struct ForwardRefTable FRT[MAX_FRT];
 struct DirectAdrTable DAT[MAX_DAT];
 struct HDRMTable HDRMT[MAX_HDRM];
-struct Memory M[MEMORY_SIZE]; // Loader için memory array
+struct Memory M[MEMORY_SIZE]; //Loader için memory array
 
 int ST_count = 0;
 int FRT_count = 0;
@@ -27,7 +27,7 @@ int addToSymbolTable(const char *symbol, int address) {
         return -1;
     }
     
-    // Aynı symbol var mı kontrol et
+    //Aynı symbol var mı kontrol et
     for (int i = 0; i < ST_count; i++) {
         if (strcmp(ST[i].symbol, symbol) == 0) {
             printf("HATA: Symbol '%s' zaten tanımlı!\n", symbol);
@@ -47,17 +47,17 @@ int findInSymbolTable(const char *symbol) {
             return ST[i].address;
         }
     }
-    return -1; // Bulunamadı
+    return -1; //Bulunamadı
 }
 
 int isExternalReference(const char *symbol) {
-    // HDRM table'da R (Reference) kodlu symbol'leri kontrol et
+    //HDRM table'da R (Reference) kodlu symbol'leri kontrol et
     for (int i = 0; i < HDRM_count; i++) {
         if (HDRMT[i].code == 'R' && strcmp(HDRMT[i].symbol, symbol) == 0) {
-            return 1; // External reference
+            return 1; //External reference
         }
     }
-    return 0; // External reference değil
+    return 0; //External reference değil
 }
 
 int addToForwardRefTable(int address, const char *symbol) {
@@ -78,10 +78,10 @@ int addToDirectAdrTable(int address) {
         return -1;
     }
     
-    // Aynı address var mı kontrol et
+    //Aynı address var mı kontrol et
     for (int i = 0; i < DAT_count; i++) {
         if (DAT[i].address == address) {
-            return 0; // Zaten var
+            return 0; //Zaten var
         }
     }
     
@@ -103,7 +103,7 @@ int addToHDRMTable(char code, const char *symbol, int address) {
     return 0;
 }
 
-// D kayıtlarının adreslerini Symbol Table'dan güncelle (Pass 1 sonunda çağrılır)
+//D kayıtlarının adreslerini Symbol Table'dan güncelle (Pass 1 sonunda çağrılır)
 void updateDRecordAddresses(void) {
     for (int i = 0; i < HDRM_count; i++) {
         if (HDRMT[i].code == 'D') {

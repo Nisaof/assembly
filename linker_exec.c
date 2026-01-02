@@ -3,12 +3,12 @@
 #include <string.h>
 #include <ctype.h>
 
-// Minimal linker for the existing assembler/loader pipeline.
-// Usage:
-//   ./linker_exec <out_prefix> <mod1.o> <mod1.t> [<mod2.o> <mod2.t> ...]
-// Outputs:
-//   <out_prefix>.exe   (linked, still relocatable)
-//   <out_prefix>.t     (DAT entries for loader relocation)
+//Minimal linker for the existing assembler/loader pipeline.
+//Usage:
+//  ./linker_exec <out_prefix> <mod1.o> <mod1.t> [<mod2.o> <mod2.t> ...]
+//Outputs:
+//  <out_prefix>.exe   (linked, still relocatable)
+//  <out_prefix>.t     (DAT entries for loader relocation)
 
 #define MAX_LINE 512
 #define MAX_SYMBOLS 256
@@ -19,31 +19,31 @@
 
 typedef struct {
     char name[32];
-    int value; // absolute address in linked executable (LC space)
+    int value; //absolute address in linked executable (LC space)
 } SymEntry;
 
 typedef struct {
-    int addr;          // module-relative address of the address-field high byte (lc+1)
-    char symbol[32];   // referenced symbol
+    int addr;          //module-relative address of the address-field high byte (lc+1)
+    char symbol[32];   //referenced symbol
 } MRec;
 
 typedef struct {
-    char symbol[32];   // defined/exported symbol
-    int addr;          // module-relative address
+    char symbol[32];   //defined/exported symbol
+    int addr;          //module-relative address
 } DRec;
 
 typedef struct {
     char o_path[256];
     char t_path[256];
-    char prog_name[32]; // from H record
-    int base;           // base LC in linked executable
-    int length;         // module length in bytes
+    char prog_name[32]; //from H record
+    int base;           //base LC in linked executable
+    int length;         //module length in bytes
 
-    // Local symbol table (from .t file's SYMBOL TABLE section)
+    //Local symbol table (from .t file's SYMBOL TABLE section)
     SymEntry locals[MAX_SYMBOLS];
     int locals_count;
 
-    // HDRM-derived lists
+    //HDRM-derived lists
     MRec mrecs[MAX_MRECS];
     int mrecs_count;
 
@@ -68,7 +68,7 @@ static int symmap_find(const SymMap *m, const char *name) {
 }
 
 static void symmap_put(SymMap *m, const char *name, int value) {
-    // Replace if exists
+    //Replace if exists
     for (int i = 0; i < m->count; i++) {
         if (strcmp(m->entries[i].name, name) == 0) {
             m->entries[i].value = value;
@@ -85,7 +85,7 @@ static void symmap_put(SymMap *m, const char *name, int value) {
 
 static int module_find_local(const Module *mod, const char *name) {
     for (int i = 0; i < mod->locals_count; i++) {
-        if (strcmp(mod->locals[i].name, name) == 0) return mod->locals[i].value; // module-relative
+        if (strcmp(mod->locals[i].name, name) == 0) return mod->locals[i].value; //module-relative
     }
     return -1;
 }
@@ -120,7 +120,7 @@ static int opcode_len_bytes(const char *tok) {
     for (size_t i = 0; i < sizeof(opcode_sizes) / sizeof(opcode_sizes[0]); i++) {
         if (strcmp(opcode_sizes[i].op, tok) == 0) return opcode_sizes[i].bytes;
     }
-    return 1; // data byte
+    return 1; //data byte
 }
 
 static void parse_t_file(Module *mod) {
@@ -147,7 +147,7 @@ static void parse_t_file(Module *mod) {
         if (strstr(line, "===")) { section = SEC_NONE; continue; }
 
         if (section == SEC_SYMTAB) {
-            // Symbol: LOOP       Address: 0
+            //Symbol: LOOP       Address: 0
             char sym[32];
             int addr = 0;
             if (sscanf(line, "Symbol: %31s Address: %d", sym, &addr) == 2) {
@@ -159,9 +159,9 @@ static void parse_t_file(Module *mod) {
                 }
             }
         } else if (section == SEC_HDRM) {
-            // H MAIN 0
-            // D AD5 0
-            // M XX 1
+            //H MAIN 0
+            //D AD5 0
+            //M XX 1
             char code = 0;
             char sym[32];
             int addr = 0;
@@ -275,7 +275,7 @@ static void link_modules(const char *out_prefix, Module *mods, int mod_count, co
             if (size == 3 && n >= 4) {
                 const MRec *mrec = module_find_mrec_at(mod, lc + 1);
                 if (mrec) {
-                    // Always compute the correct linked address for this symbol.
+                    //Always compute the correct linked address for this symbol.
                     int target = symmap_find(estab, mrec->symbol);
                     if (target < 0) {
                         int local = module_find_local(mod, mrec->symbol);
@@ -286,10 +286,10 @@ static void link_modules(const char *out_prefix, Module *mods, int mod_count, co
                         int high = (target >> 8) & 0xFF;
                         int low = target & 0xFF;
                         fprintf(exe, "%d %s %02X %02X\n", global_lc, tok1, high, low);
-                        // DAT holds the LC of the address-field high byte in the linked executable.
+                        //DAT holds the LC of the address-field high byte in the linked executable.
                         dat_add_unique(dat_out, &dat_count, global_lc + 1);
                     } else {
-                        // Unresolved; keep as-is.
+                        //Unresolved; keep as-is.
                         fprintf(exe, "%d %s %s %s\n", global_lc, tok1, tok2, tok3);
                     }
                 } else {
@@ -307,7 +307,7 @@ static void link_modules(const char *out_prefix, Module *mods, int mod_count, co
 
     fclose(exe);
 
-    // Write DAT file for loader
+    //Write DAT file for loader
     FILE *tfp = fopen(t_path, "w");
     if (!tfp) {
         fprintf(stderr, "HATA: .t yazilamadi: %s\n", t_path);
@@ -345,20 +345,20 @@ int main(int argc, char **argv) {
         mods[i].t_path[sizeof(mods[i].t_path) - 1] = '\0';
     }
 
-    // Parse .t files and compute lengths
+    //Parse .t files and compute lengths
     for (int i = 0; i < mod_count; i++) {
         parse_t_file(&mods[i]);
         mods[i].length = compute_module_length_from_o(&mods[i]);
     }
 
-    // Assign bases: main first, then others follow immediately
+    //Assign bases: main first, then others follow immediately
     int running = 0;
     for (int i = 0; i < mod_count; i++) {
         mods[i].base = running;
         running += mods[i].length;
     }
 
-    // Build ESTAB from H/D records
+    //Build ESTAB from H/D records
     SymMap estab;
     memset(&estab, 0, sizeof(estab));
     for (int i = 0; i < mod_count; i++) {

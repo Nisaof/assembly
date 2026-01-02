@@ -27,7 +27,7 @@ int getInstructionSizeFromOpcode(const char *opcode_hex) {
             return opcodeSizes[i].bytes;
         }
     }
-    return 1; // Data byte
+    return 1; //Data byte
 }
 
 static int isKnownOpcode(const char *opcode_hex) {
@@ -39,7 +39,7 @@ static int isKnownOpcode(const char *opcode_hex) {
     return 0;
 }
 
-// 1033 -> "10" "33"
+//1033 -> "10" "33"
 void intToTwoCharString(int value, char *high, char *low) {
     sprintf(high, "%02d", value / 100);
     sprintf(low, "%02d", value % 100);
@@ -126,7 +126,7 @@ static void loadExeFile(const char *exe_file, int loadpoint) {
     fclose(fp);
 }
 
-// DAT'taki her adres için 16-bit değere loadpoint ekle.
+//DAT'taki her adres için 16-bit değere loadpoint ekle.
 void applyRelocation(int loadpoint, int *dat_addresses, int dat_count) {
     for (int i = 0; i < dat_count; i++) {
         int lc = dat_addresses[i];

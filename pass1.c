@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include "pass1.h"
 
-// Opcode tablosu
+//Opcode tablosu
 typedef struct {
     char mnemonic[10];
     char opcode[3];
@@ -30,14 +30,14 @@ OpcodeEntry opcodeMap[] = {
 
 int opcodeMapSize = sizeof(opcodeMap) / sizeof(OpcodeEntry);
 
-// Relative addressing mi?
+//Relative addressing mi?
 int isRelativeAddressing(const char *opcode) {
     return (strcmp(opcode, "BEQ") == 0 || 
             strcmp(opcode, "BGT") == 0 || 
             strcmp(opcode, "BLT") == 0);
 }
 
-// Mnemonic + addressing mode -> opcode hex
+//Mnemonic + addressing mode -> opcode hex
 void opcodeToHex(const char *opcode, const char *operand, char *hexOpcode) {
     int isImmediate = (operand && operand[0] == '#');
     
@@ -49,27 +49,27 @@ void opcodeToHex(const char *opcode, const char *operand, char *hexOpcode) {
             }
         }
     }
-    strcpy(hexOpcode, "??"); // Bulunamadı
+    strcpy(hexOpcode, "??"); //Bulunamadı
 }
 
-// Operand sayı mı?
+//Operand sayı mı?
 int isNumeric(const char *str) {
     if (!str || strlen(str) == 0) return 0;
     if (str[0] == '#') {
-        // Immediate: #5 gibi
+        //Immediate: #5 gibi
         for (int i = 1; str[i]; i++) {
             if (!isdigit(str[i])) return 0;
         }
         return 1;
     }
-    // Direkt sayı: 10, 70 gibi
+    //Direkt sayı: 10, 70 gibi
     for (int i = 0; str[i]; i++) {
         if (!isdigit(str[i])) return 0;
     }
     return 1;
 }
 
-// Operand'dan sayıyı al
+//Operand'dan sayıyı al
 int getNumericValue(const char *operand) {
     if (!operand) return 0;
     if (operand[0] == '#') {
@@ -78,34 +78,34 @@ int getNumericValue(const char *operand) {
     return atoi(operand);
 }
 
-// ST güncelle
+//ST güncelle
 void updateSymbolTable(ParsedLine *pl, int LC) {
-    // Label varsa Symbol Table'a ekle
+    //Label varsa Symbol Table'a ekle
     if (strlen(pl->label) > 0) {
         int existing = findInSymbolTable(pl->label);
         if (existing == -1) {
-            // Yeni symbol
+            //Yeni symbol
             addToSymbolTable(pl->label, LC);
         } else {
-            // Symbol zaten var, hata olabilir
+            //Symbol zaten var, hata olabilir
             printf("UYARI: Symbol '%s' zaten tanımlı (eski: %d, yeni: %d)\n", 
                    pl->label, existing, LC);
         }
     }
 }
 
-// FRT güncelle
+//FRT güncelle
 void updateFRT(ParsedLine *pl, int LC) {
-    // Tanımsız sembol görürsek FRT'ye al
+    //Tanımsız sembol görürsek FRT'ye al
     if (strlen(pl->operand) > 0 && !isNumeric(pl->operand)) {
-        // Immediate değilse (# ile başlamıyorsa)
+        //Immediate değilse (# ile başlamıyorsa)
         if (pl->operand[0] != '#') {
-            // External değilse ve ST'de yoksa forward ref
+            //External değilse ve ST'de yoksa forward ref
             if (!isExternalReference(pl->operand)) {
                 int found = findInSymbolTable(pl->operand);
                 if (found == -1) {
-                    // Symbol henüz tanımlı değil, forward reference
-                    // 3-byte: adres alanı LC+1
+                    //Symbol henüz tanımlı değil, forward reference
+                    //3-byte: adres alanı LC+1
                     int addrOffset = (pl->size == 3) ? 1 : 0;
                     addToForwardRefTable(LC + addrOffset, pl->operand);
                 }
@@ -114,26 +114,26 @@ void updateFRT(ParsedLine *pl, int LC) {
     }
 }
 
-// DAT güncelle
+//DAT güncelle
 void updateDAT(ParsedLine *pl, int LC) {
-    (void)LC; // şu an kullanılmıyor
-    // BYTE/WORD: veri, DAT'a girmez
+    (void)LC; //şu an kullanılmıyor
+    //BYTE/WORD: veri, DAT'a girmez
     if (strcmp(pl->opcode, "BYTE") == 0 || strcmp(pl->opcode, "WORD") == 0) {
         return;
     }
     
-    // Direct addressing kullanan instruction'lar için
-    // Operand sayısal bir adres ise (örn: STA 70, STA 10)
+    //Direct addressing kullanan instruction'lar için
+    //Operand sayısal bir adres ise (örn: STA 70, STA 10)
     if (strlen(pl->operand) > 0 && isNumeric(pl->operand) && pl->operand[0] != '#') {
         int addr = getNumericValue(pl->operand);
         addToDirectAdrTable(addr);
     }
 }
 
-// HDRM güncelle
+//HDRM güncelle
 void updateHDRM(ParsedLine *pl, int LC) {
     if (strcmp(pl->opcode, "EXTREF") == 0) {
-        // EXTREF: R kayıtları
+        //EXTREF: R kayıtları
         char *operand_copy = strdup(pl->operand);
         char *token = strtok(operand_copy, ",");
         while (token != NULL) {
@@ -145,13 +145,13 @@ void updateHDRM(ParsedLine *pl, int LC) {
     }
     
     if (strcmp(pl->opcode, "ENTRY") == 0) {
-        // ENTRY: D kayıtları (adres Pass1 sonunda güncellenir)
+        //ENTRY: D kayıtları (adres Pass1 sonunda güncellenir)
         char *operand_copy = strdup(pl->operand);
         char *token = strtok(operand_copy, ",");
         while (token != NULL) {
             while (*token == ' ' || *token == '\t') token++;
             int addr = findInSymbolTable(token);
-            if (addr == -1) addr = 0; // Henüz bilinmiyor
+            if (addr == -1) addr = 0; //Henüz bilinmiyor
             addToHDRMTable('D', token, addr);
             token = strtok(NULL, ",");
         }
@@ -165,18 +165,18 @@ void updateHDRM(ParsedLine *pl, int LC) {
     }
 }
 
-// .s üret
+//.s üret
 void generatePartialCode(ParsedLine *pl, int LC, FILE *sfp) {
     if (!sfp) return;
     
-    // BYTE
+    //BYTE
     if (strcmp(pl->opcode, "BYTE") == 0) {
         int val = getNumericValue(pl->operand);
         fprintf(sfp, "%d %02X\n", LC, val & 0xFF);
         return;
     }
     
-    // WORD
+    //WORD
     if (strcmp(pl->opcode, "WORD") == 0) {
         int val = getNumericValue(pl->operand);
         fprintf(sfp, "%d %02X\n", LC, val & 0xFF);
@@ -188,7 +188,7 @@ void generatePartialCode(ParsedLine *pl, int LC, FILE *sfp) {
     
     fprintf(sfp, "%d %s ", LC, hexOpcode);
     
-    // Operand için partial code
+    //Operand için partial code
     if (pl->size == 1) {
         fprintf(sfp, "\n");
     } else if (pl->size == 2) {

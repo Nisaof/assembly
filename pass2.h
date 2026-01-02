@@ -3,4 +3,4 @@
 
 void runPass2(const char *s_file, const char *o_file, const char *t_file);
 
-#endif // PASS2_H
+#endif //PASS2_H
